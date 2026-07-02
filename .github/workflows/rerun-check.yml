@@ -1,0 +1,28 @@
+name: Re-request a check run
+
+# Manual utility: re-request a completed check run by id (for example a
+# postil/gate run that failed on an operational error), triggering the
+# creating app's check_run.rerequested webhook. The public REST endpoint
+# rejects classic personal tokens, so this runs with the workflow's own
+# installation token instead.
+on:
+  workflow_dispatch:
+    inputs:
+      check_run_id:
+        description: Numeric id of the check run to re-request
+        required: true
+
+permissions:
+  checks: write
+
+jobs:
+  rerequest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Re-request the check run
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CHECK_RUN_ID: ${{ inputs.check_run_id }}
+        run: |
+          set -euo pipefail
+          gh api -X POST "repos/${GITHUB_REPOSITORY}/check-runs/${CHECK_RUN_ID}/rerequest"
